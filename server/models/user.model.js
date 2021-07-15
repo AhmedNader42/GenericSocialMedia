@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -42,8 +43,12 @@ UserSchema.methods = {
     encryptPassword: function (password) {
         if (!password) return '';
         try {
-            return crypto.createHmac('sha1', this.salt).update(password).digest('hex');
+            return crypto
+                .createHmac('sha1', this.salt)
+                .update(password)
+                .digest('hex');
         } catch (err) {
+            console.log(err);
             return '';
         }
     },
@@ -54,7 +59,10 @@ UserSchema.methods = {
 
 UserSchema.path('hashed_password').validate(function (v) {
     if (this._password && this._password.length < 6) {
-        this.invalidate('password', 'Password length must be at least 6 characters.');
+        this.invalidate(
+            'password',
+            'Password length must be at least 6 characters.'
+        );
     }
 
     if (this.isNew && !this._password) {
